@@ -21,7 +21,8 @@
     "typecheck": "tsc --noEmit",
     "check": "biome check .",
     "check:fix": "biome check --write .",
-    "ci": "pnpm run typecheck && pnpm run check",
+    "imports": "biome check --write --fix .",
+    "ci": "pnpm run format:check && pnpm run typecheck && pnpm run check",
     "prepare": "husky"
   },
   "dependencies": {
