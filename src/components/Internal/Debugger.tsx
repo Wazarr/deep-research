@@ -27,14 +27,10 @@ function Debugger() {
         setup();
       }
     }
-  }, [debug]);
+  }, [debug, setup]);
 
   return debug === "enable" ? (
-    <Script
-      id="eruda"
-      src="./scripts/eruda.min.js"
-      onLoad={() => setup()}
-    ></Script>
+    <Script id="eruda" src="./scripts/eruda.min.js" onLoad={() => setup()}></Script>
   ) : null;
 }
 

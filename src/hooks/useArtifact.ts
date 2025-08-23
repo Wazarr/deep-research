@@ -1,15 +1,15 @@
+import { smoothStream, streamText } from "ai";
 import { useState } from "react";
-import { streamText, smoothStream } from "ai";
 import { toast } from "sonner";
-import { useSettingStore } from "@/store/setting";
 import useModelProvider from "@/hooks/useAiProvider";
+import { useSettingStore } from "@/store/setting";
 import {
   AIWritePrompt,
+  addEmojisPrompt,
+  adjustLengthPrompt,
   changeLanguagePrompt,
   changeReadingLevelPrompt,
-  adjustLengthPrompt,
   continuationPrompt,
-  addEmojisPrompt,
 } from "@/utils/artifact";
 import { parseError } from "@/utils/error";
 
@@ -116,7 +116,7 @@ function useArtifact({ value, onChange }: ArtifactProps) {
       experimental_transform: smoothTextStream(smoothTextStreamType),
       onError: handleError,
     });
-    let text = value + "\n";
+    let text = `${value}\n`;
     for await (const textPart of result.textStream) {
       text += textPart;
       onChange(text);
