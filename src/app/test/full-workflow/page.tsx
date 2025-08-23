@@ -132,7 +132,7 @@ export default function TestEndpointsPage() {
                   events: [...prev.streaming!.events, { event: eventType, data }],
                 },
               }));
-            } catch (e: any) {
+            } catch (_e: any) {
               // Skip invalid JSON
             }
           }
@@ -288,7 +288,7 @@ export default function TestEndpointsPage() {
               <Input
                 value={config.maxResults}
                 onChange={(e) =>
-                  setConfig((prev) => ({ ...prev, maxResults: parseInt(e.target.value) || 10 }))
+                  setConfig((prev) => ({ ...prev, maxResults: parseInt(e.target.value, 10) || 10 }))
                 }
                 placeholder="Results"
                 type="number"
