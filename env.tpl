@@ -113,3 +113,8 @@ NEXT_PUBLIC_MODEL_LIST=
 
 # (Optional) Injected script code can be used for statistics or error tracking.
 HEAD_SCRIPTS=
+
+# Storage configuration - set to "database" to use SQLite, "memory" for in-memory storage
+STORAGE_TYPE=database
+# Database file path (optional, defaults to ./data/research.db)
+DATABASE_PATH=./data/research.db

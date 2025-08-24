@@ -169,6 +169,9 @@ class DeepResearch {
           researchGoal: item.researchGoal || "",
         })
       );
+      this.onMessage("message", {
+        content: `Generated ${tasks.length} search queries:\n${tasks.map((task, i) => `${i + 1}. ${task.query} (${task.researchGoal})`).join("\n")}`,
+      });
       this.onMessage("progress", {
         step: "serp-query",
         status: "end",

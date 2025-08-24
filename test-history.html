@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test History</title>
+</head>
+<body>
+    <h1>Testing Deep Research History</h1>
+    <button onclick="createTestHistory()">Create Test History Entry</button>
+    <button onclick="showHistory()">Show History</button>
+    <div id="output"></div>
+
+    <script>
+        function createTestHistory() {
+            const testData = {
+                state: {
+                    history: [{
+                        id: "test123",
+                        title: "Real estate investment opportunities in Northern Italy",
+                        question: "Real estate investment opportunities in Northern Italy: market analysis, property types, ROI potential, tax implications, and legal considerations for foreign investors in 2024-2025",
+                        finalReport: "# Complete Research Report on Northern Italy Real Estate\n\nThis is a test final report...",
+                        tasks: [],
+                        resources: [],
+                        feedback: "",
+                        reportPlan: "",
+                        suggestion: "",
+                        requirement: "",
+                        query: "",
+                        questions: "",
+                        sources: [],
+                        images: [],
+                        knowledgeGraph: "",
+                        createdAt: Date.now(),
+                        updatedAt: Date.now()
+                    }]
+                },
+                version: 1
+            };
+            
+            localStorage.setItem('historyStore', JSON.stringify(testData));
+            document.getElementById('output').innerHTML = 'Test history entry created!';
+        }
+        
+        function showHistory() {
+            const history = localStorage.getItem('historyStore');
+            const parsed = history ? JSON.parse(history) : null;
+            document.getElementById('output').innerHTML = `
+                <h2>History Data:</h2>
+                <pre>${JSON.stringify(parsed, null, 2)}</pre>
+            `;
+        }
+    </script>
+</body>
+</html>

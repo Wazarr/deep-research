@@ -1,10 +1,13 @@
 "use client";
 import dynamic from "next/dynamic";
+import { useSearchParams } from "next/navigation";
 import { useTheme } from "next-themes";
-import { useLayoutEffect } from "react";
+import { Suspense, useEffect, useLayoutEffect } from "react";
 import { useTranslation } from "react-i18next";
+import useResearchAPI from "@/hooks/useResearchAPI";
 import { useGlobalStore } from "@/store/global";
 import { useSettingStore } from "@/store/setting";
+import { useTaskStore } from "@/store/task";
 
 const Header = dynamic(() => import("@/components/Internal/Header"));
 const Setting = dynamic(() => import("@/components/Setting"));
@@ -14,6 +17,24 @@ const SearchResult = dynamic(() => import("@/components/Research/SearchResult"))
 const FinalReport = dynamic(() => import("@/components/Research/FinalReport"));
 const History = dynamic(() => import("@/components/History"));
 const Knowledge = dynamic(() => import("@/components/Knowledge"));
+
+function SessionHandler() {
+  const searchParams = useSearchParams();
+  const { getSession } = useResearchAPI();
+  const taskStore = useTaskStore();
+
+  // Handle sessionId URL parameter
+  useEffect(() => {
+    const sessionId = searchParams.get("sessionId");
+    if (sessionId && sessionId !== taskStore.id) {
+      console.log("Loading session from URL:", sessionId);
+      taskStore.setId(sessionId);
+      getSession(sessionId);
+    }
+  }, [searchParams, getSession, taskStore]);
+
+  return null;
+}
 
 function Home() {
   const { t } = useTranslation();
@@ -33,8 +54,12 @@ function Home() {
     const settingStore = useSettingStore.getState();
     setTheme(settingStore.theme);
   }, [setTheme]);
+
   return (
     <div className="max-lg:max-w-screen-md max-w-screen-lg mx-auto px-4">
+      <Suspense fallback={<div>Loading...</div>}>
+        <SessionHandler />
+      </Suspense>
       <Header />
       <main>
         <Topic />

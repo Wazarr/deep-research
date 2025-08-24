@@ -26,8 +26,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import useAccurateTimer from "@/hooks/useAccurateTimer";
-import useDeepResearch from "@/hooks/useDeepResearch";
 import useKnowledge from "@/hooks/useKnowledge";
+import useResearchAPI from "@/hooks/useResearchAPI";
 import { useKnowledgeStore } from "@/store/knowledge";
 import { useTaskStore } from "@/store/task";
 import { getSystemPrompt } from "@/utils/deep-research/prompts";
@@ -45,7 +45,7 @@ const formSchema = z.object({
 function FinalReport() {
   const { t } = useTranslation();
   const taskStore = useTaskStore();
-  const { status, writeFinalReport } = useDeepResearch();
+  const { status, executeResearch, streaming } = useResearchAPI();
   const { generateId } = useKnowledge();
   const { formattedTime, start: accurateTimerStart, stop: accurateTimerStop } = useAccurateTimer();
   const [isWriting, setIsWriting] = useState<boolean>(false);
@@ -68,7 +68,7 @@ function FinalReport() {
       accurateTimerStart();
       setIsWriting(true);
       if (values.requirement) setRequirement(values.requirement);
-      await writeFinalReport();
+      await executeResearch();
     } finally {
       setIsWriting(false);
       accurateTimerStop();
@@ -282,15 +282,15 @@ function FinalReport() {
                       <Textarea
                         rows={3}
                         placeholder={t("research.finalReport.writingRequirementPlaceholder")}
-                        disabled={isWriting}
+                        disabled={isWriting || streaming}
                         {...field}
                       />
                     </FormControl>
                   </FormItem>
                 )}
               />
-              <Button className="w-full mt-4" type="submit" disabled={isWriting}>
-                {isWriting ? (
+              <Button className="w-full mt-4" type="submit" disabled={isWriting || streaming}>
+                {isWriting || streaming ? (
                   <>
                     <LoaderCircle className="animate-spin" />
                     <span>{status}</span>
