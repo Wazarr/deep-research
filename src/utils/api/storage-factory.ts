@@ -13,10 +13,15 @@ export function getStorageType(): StorageType {
   return process.env.STORAGE_TYPE === "database" ? "database" : "memory";
 }
 
-export function getUserManager() {
-  const storageType = getStorageType();
+// Helper function to check if a specific manager type should use database
+export function shouldUseDatabaseForManager(managerType: "user" | "session" | "knowledge" | "history"): boolean {
+  // Only use database for managers that are fully implemented
+  const databaseReadyManagers = ["user"]; // Add others as they're completed
+  return getStorageType() === "database" && databaseReadyManagers.includes(managerType);
+}
 
-  if (storageType === "database") {
+export function getUserManager() {
+  if (shouldUseDatabaseForManager("user")) {
     return DatabaseUserManager.getInstance();
   } else {
     return UserManager.getInstance();
@@ -24,9 +29,7 @@ export function getUserManager() {
 }
 
 export function getSessionManager() {
-  const storageType = getStorageType();
-
-  if (storageType === "database") {
+  if (shouldUseDatabaseForManager("session")) {
     return DatabaseSessionManager.getInstance();
   } else {
     return SessionManager.getInstance();
@@ -34,9 +37,7 @@ export function getSessionManager() {
 }
 
 export function getKnowledgeManager() {
-  const storageType = getStorageType();
-
-  if (storageType === "database") {
+  if (shouldUseDatabaseForManager("knowledge")) {
     return DatabaseKnowledgeManager.getInstance();
   } else {
     return KnowledgeManager.getInstance();
@@ -44,9 +45,7 @@ export function getKnowledgeManager() {
 }
 
 export function getHistoryManager() {
-  const storageType = getStorageType();
-
-  if (storageType === "database") {
+  if (shouldUseDatabaseForManager("history")) {
     return DatabaseHistoryManager.getInstance();
   } else {
     return HistoryManager.getInstance();

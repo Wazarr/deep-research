@@ -94,6 +94,16 @@ export class DatabaseUserManager {
     }
   }
 
+  async getUserSettings(userId: string): Promise<UserSettings | null> {
+    try {
+      const user = await this.get(userId);
+      return user?.settings || null;
+    } catch (error) {
+      console.error("Error getting user settings:", error);
+      return null;
+    }
+  }
+
   async updateSettings(
     userId: string,
     settings: Partial<UserSettings>

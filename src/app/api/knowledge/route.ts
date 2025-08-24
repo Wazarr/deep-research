@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/utils/api/auth";
+import { getKnowledgeManager } from "@/utils/api/storage-factory";
 import {
   type APIResponse,
   type ListKnowledgeResponse,
@@ -13,6 +14,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const { userId } = await authenticateRequest(request);
 
+    const knowledgeManager = getKnowledgeManager();
     const knowledge = await knowledgeManager.list(userId);
 
     const response: APIResponse<ListKnowledgeResponse> = {
@@ -38,6 +40,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const { userId } = await authenticateRequest(request);
 
+    const knowledgeManager = getKnowledgeManager();
     const contentType = request.headers.get("content-type") || "";
 
     if (contentType.includes("multipart/form-data")) {

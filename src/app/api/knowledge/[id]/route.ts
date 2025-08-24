@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/utils/api/auth";
+import { getKnowledgeManager } from "@/utils/api/storage-factory";
 import type { APIResponse } from "@/utils/api/types";
 
 export const runtime = "nodejs";
@@ -13,6 +14,7 @@ export async function GET(
     const { userId } = await authenticateRequest(request);
     const { id: knowledgeId } = await params;
 
+    const knowledgeManager = getKnowledgeManager();
     const knowledge = await knowledgeManager.get(knowledgeId);
 
     if (!knowledge) {
