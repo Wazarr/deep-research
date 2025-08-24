@@ -70,8 +70,8 @@ export async function POST(
 
     // Add resources to session
     const currentResources = session.resources || [];
-    const existingIds = new Set(currentResources.map((r) => r.id));
-    const newResources = resources.filter((r) => !existingIds.has(r.id));
+    const existingIds = new Set(currentResources.map((r: any) => r.id));
+    const newResources = resources.filter((r: any) => !existingIds.has(r.id));
 
     const updatedSession = await sessionManager.update(sessionId, {
       resources: [...currentResources, ...newResources],

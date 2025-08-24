@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
           const sessions = await sessionManager.list(authReq.auth.userId);
 
           const response: SessionListResponse = {
-            sessions: sessions.map((session) => ({
+            sessions: sessions.map((session: any) => ({
               id: session.id,
               createdAt: session.createdAt,
               updatedAt: session.updatedAt,

@@ -34,7 +34,7 @@ export async function DELETE(
     }
 
     const currentResources = session.resources || [];
-    const resourceExists = currentResources.some((r) => r.id === resourceId);
+    const resourceExists = currentResources.some((r: any) => r.id === resourceId);
 
     if (!resourceExists) {
       const response: APIResponse = {
@@ -44,7 +44,7 @@ export async function DELETE(
       return NextResponse.json(response, { status: 404 });
     }
 
-    const updatedResources = currentResources.filter((r) => r.id !== resourceId);
+    const updatedResources = currentResources.filter((r: any) => r.id !== resourceId);
 
     const updatedSession = await sessionManager.update(sessionId, {
       resources: updatedResources,

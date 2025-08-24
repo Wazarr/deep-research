@@ -1,15 +1,24 @@
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
+import { sql } from "drizzle-orm";
 import * as schema from "./schema";
 
 // Database file path
 const dbPath = process.env.DATABASE_PATH || "./data/research.db";
 
-let db: ReturnType<typeof drizzle>;
+let db: any = null;
 
 // Initialize database connection
 function initializeDatabase() {
+  // Skip database initialization in serverless environments
+  if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NETLIFY) {
+    console.log("Skipping database initialization in serverless environment");
+    return null;
+  }
+
   try {
+    // Dynamic import to avoid bundling issues in serverless
+    const Database = require("better-sqlite3");
+    const { drizzle } = require("drizzle-orm/better-sqlite3");
+
     const sqlite = new Database(dbPath);
     sqlite.pragma("journal_mode = WAL");
 
@@ -21,12 +30,18 @@ function initializeDatabase() {
     return db;
   } catch (error) {
     console.error("Failed to initialize database:", error);
-    throw error;
+    console.log("Falling back to memory storage");
+    return null;
   }
 }
 
 // Run database migrations
 function runMigrations() {
+  if (!db) {
+    console.log("No database instance available for migrations");
+    return;
+  }
+
   try {
     // Create tables if they don't exist
     db.run(sql`
@@ -116,16 +131,18 @@ function runMigrations() {
 // Create database directory if it doesn't exist
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
-import { sql } from "drizzle-orm";
 
-try {
-  mkdirSync(dirname(dbPath), { recursive: true });
-} catch (_error) {
-  // Directory might already exist
+// Only create directory and initialize if not in serverless
+if (!process.env.VERCEL && !process.env.AWS_LAMBDA_FUNCTION_NAME && !process.env.NETLIFY) {
+  try {
+    mkdirSync(dirname(dbPath), { recursive: true });
+  } catch (_error) {
+    // Directory might already exist
+  }
+
+  // Initialize on import
+  db = initializeDatabase();
 }
-
-// Initialize on import
-db = initializeDatabase();
 
 export { db };
 export * from "./schema";

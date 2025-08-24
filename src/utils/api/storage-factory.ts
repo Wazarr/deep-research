@@ -1,7 +1,21 @@
-import { DatabaseHistoryManager } from "./db-history-manager";
-import { DatabaseKnowledgeManager } from "./db-knowledge-manager";
-import { DatabaseSessionManager } from "./db-session-manager";
-import { DatabaseUserManager } from "./db-user-manager";
+// Conditional imports for database managers
+let DatabaseHistoryManager: any = null;
+let DatabaseKnowledgeManager: any = null;
+let DatabaseSessionManager: any = null;
+let DatabaseUserManager: any = null;
+
+// Only import database managers if not in serverless environment
+try {
+  if (!process.env.VERCEL && !process.env.AWS_LAMBDA_FUNCTION_NAME && !process.env.NETLIFY) {
+    DatabaseHistoryManager = require("./db-history-manager").DatabaseHistoryManager;
+    DatabaseKnowledgeManager = require("./db-knowledge-manager").DatabaseKnowledgeManager;
+    DatabaseSessionManager = require("./db-session-manager").DatabaseSessionManager;
+    DatabaseUserManager = require("./db-user-manager").DatabaseUserManager;
+  }
+} catch (error) {
+  console.warn("Database managers not available:", error);
+}
+
 import { HistoryManager } from "./history-manager";
 import { KnowledgeManager } from "./knowledge-manager";
 import { SessionManager } from "./session-manager";
@@ -10,6 +24,10 @@ import { UserManager } from "./user-manager";
 export type StorageType = "memory" | "database";
 
 export function getStorageType(): StorageType {
+  // Force memory storage in serverless environments like Vercel
+  if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NETLIFY) {
+    return "memory";
+  }
   return process.env.STORAGE_TYPE === "database" ? "database" : "memory";
 }
 
@@ -23,7 +41,7 @@ export function shouldUseDatabaseForManager(
 }
 
 export function getUserManager() {
-  if (shouldUseDatabaseForManager("user")) {
+  if (shouldUseDatabaseForManager("user") && DatabaseUserManager) {
     return DatabaseUserManager.getInstance();
   } else {
     return UserManager.getInstance();
@@ -31,7 +49,7 @@ export function getUserManager() {
 }
 
 export function getSessionManager() {
-  if (shouldUseDatabaseForManager("session")) {
+  if (shouldUseDatabaseForManager("session") && DatabaseSessionManager) {
     return DatabaseSessionManager.getInstance();
   } else {
     return SessionManager.getInstance();
@@ -39,7 +57,7 @@ export function getSessionManager() {
 }
 
 export function getKnowledgeManager() {
-  if (shouldUseDatabaseForManager("knowledge")) {
+  if (shouldUseDatabaseForManager("knowledge") && DatabaseKnowledgeManager) {
     return DatabaseKnowledgeManager.getInstance();
   } else {
     return KnowledgeManager.getInstance();
@@ -47,7 +65,7 @@ export function getKnowledgeManager() {
 }
 
 export function getHistoryManager() {
-  if (shouldUseDatabaseForManager("history")) {
+  if (shouldUseDatabaseForManager("history") && DatabaseHistoryManager) {
     return DatabaseHistoryManager.getInstance();
   } else {
     return HistoryManager.getInstance();
@@ -57,7 +75,7 @@ export function getHistoryManager() {
 // Utility function to check if database is available and working
 export async function testDatabaseConnection(): Promise<boolean> {
   try {
-    if (getStorageType() !== "database") {
+    if (getStorageType() !== "database" || !DatabaseUserManager) {
       return false;
     }
 
