@@ -14,7 +14,9 @@ export function getStorageType(): StorageType {
 }
 
 // Helper function to check if a specific manager type should use database
-export function shouldUseDatabaseForManager(managerType: "user" | "session" | "knowledge" | "history"): boolean {
+export function shouldUseDatabaseForManager(
+  managerType: "user" | "session" | "knowledge" | "history"
+): boolean {
   // Only use database for managers that are fully implemented
   const databaseReadyManagers = ["user"]; // Add others as they're completed
   return getStorageType() === "database" && databaseReadyManagers.includes(managerType);

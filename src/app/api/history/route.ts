@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/utils/api/auth";
+import { getHistoryManager, getSessionManager } from "@/utils/api/storage-factory";
 import { type APIResponse, type ListHistoryResponse, SaveHistorySchema } from "@/utils/api/types";
 
 export const runtime = "nodejs";
@@ -14,6 +15,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const tag = url.searchParams.get("tag");
 
     let history;
+    const historyManager = getHistoryManager();
 
     if (query) {
       history = await historyManager.search(query, userId);
@@ -50,6 +52,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const { sessionId, title, tags } = SaveHistorySchema.parse(body);
 
     // Get the session to save
+    const sessionManager = getSessionManager();
     const session = await sessionManager.get(sessionId);
     if (!session) {
       const response: APIResponse = {
@@ -68,6 +71,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json(response, { status: 403 });
     }
 
+    const historyManager = getHistoryManager();
     const historyItem = await historyManager.save(session, title, tags || [], userId);
 
     const response: APIResponse = {
