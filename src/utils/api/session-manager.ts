@@ -85,6 +85,18 @@ export class SessionManager {
       expiresAt: new Date(now.getTime() + expiresIn * 1000),
       phase: "topic",
       settings,
+
+      // Initialize enhanced fields
+      resources: [],
+      requirement: "",
+      suggestion: "",
+      knowledgeGraph: "",
+      images: [],
+      sources: [],
+      title: "",
+      query: "",
+      version: 1,
+      metadata: {},
     };
 
     await this.store.set(session.id, session);
