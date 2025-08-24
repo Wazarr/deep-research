@@ -12,7 +12,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "build:standalone": "cross-env NEXT_PUBLIC_BUILD_MODE=standalone next build",
-    "build:export": "echo 'Static export not supported with API routes - use build:standalone for Docker deployment'",
+    "build:export": "echo 'Static export not supported with API routes - use build:standalone for Docker deployment' && exit 1",
     "start": "next start",
     "format": "biome format --write .",
     "format:check": "biome format .",
