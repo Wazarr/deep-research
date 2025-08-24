@@ -7,17 +7,20 @@ Replace the problematic in-memory storage approach with a proper SQLite database
 ## Problem Analysis
 
 ### Current Issues
+
 - **Edge Runtime Isolation**: Each API route gets isolated context, preventing storage sharing
 - **In-Memory Storage Failure**: Maps don't persist between different API endpoint invocations  
 - **Data Loss**: User registration succeeds but user retrieval fails due to storage isolation
 - **Feature Gap**: 43% success rate instead of 100% due to storage reliability issues
 
 ### Root Cause
+
 Edge Runtime creates separate execution contexts for each API route, making traditional singleton patterns and global storage unreliable.
 
 ## Solution Overview
 
 Implement SQLite database with Drizzle ORM for:
+
 - **Users & Authentication** - Persistent user profiles and settings
 - **Knowledge Management** - File uploads, URLs, and text knowledge
 - **Research History** - Session history with search and tags  
@@ -28,12 +31,14 @@ Implement SQLite database with Drizzle ORM for:
 ### Phase 1: Database Setup & Schema Design
 
 #### 1.1 Install Dependencies
+
 ```bash
 pnpm add drizzle-orm better-sqlite3
 pnpm add -D drizzle-kit @types/better-sqlite3
 ```
 
 #### 1.2 Database Schema Design
+
 ```typescript
 // schema.ts
 export const users = sqliteTable('users', {
@@ -104,6 +109,7 @@ export const history = sqliteTable('history', {
 ```
 
 #### 1.3 Database Configuration
+
 ```typescript
 // db/index.ts
 import Database from 'better-sqlite3';
@@ -127,6 +133,7 @@ export function runMigrations() {
 ### Phase 2: Manager Refactoring
 
 #### 2.1 Database-Backed UserManager
+
 ```typescript
 export class UserManager {
   static async register(email?: string, settings?: Partial<UserSettings>): Promise<AuthResponse> {
@@ -154,6 +161,7 @@ export class UserManager {
 ```
 
 #### 2.2 Database-Backed KnowledgeManager
+
 ```typescript
 export class KnowledgeManager {
   static async create(data: CreateKnowledgeData): Promise<KnowledgeResponse> {
@@ -178,17 +186,20 @@ export class KnowledgeManager {
 ```
 
 #### 2.3 Database-Backed HistoryManager & SessionManager
+
 Similar patterns for history and session management with proper SQL queries.
 
 ### Phase 3: Migration Strategy
 
 #### 3.1 Gradual Migration Approach
+
 1. **Parallel Implementation**: Keep existing managers, add database versions
 2. **Feature Flag**: Environment variable to switch between storage types
 3. **Testing**: Comprehensive tests for database operations
 4. **Cutover**: Switch to database storage once validated
 
 #### 3.2 Development Workflow
+
 ```typescript
 // utils/api/storage-factory.ts
 export function getStorageType(): 'memory' | 'database' {
@@ -205,12 +216,14 @@ export function getUserManager(): UserManager {
 ### Phase 4: Testing & Validation
 
 #### 4.1 Database Testing
+
 - **Unit Tests**: Each manager with SQLite in-memory mode
 - **Integration Tests**: Full API workflows with real database
 - **Performance Tests**: Query performance and connection handling
 - **Migration Tests**: Data integrity during storage type switches
 
 #### 4.2 Edge Runtime Compatibility
+
 - **SQLite Compatibility**: Verify better-sqlite3 works in Edge Runtime
 - **File System Access**: Ensure database file can be created/accessed
 - **Connection Pooling**: Handle concurrent requests properly
@@ -218,11 +231,13 @@ export function getUserManager(): UserManager {
 ### Phase 5: Deployment & Production
 
 #### 5.1 Database File Management
+
 - **Location**: `./data/research.db` (gitignored)
 - **Backups**: Regular database backups in production
 - **Migrations**: Version-controlled schema changes
 
 #### 5.2 Performance Optimizations
+
 - **Indexes**: Key indexes for user lookups, knowledge queries, history searches
 - **Connection Management**: Single connection with proper locking
 - **Query Optimization**: Efficient queries for list/search operations
@@ -230,24 +245,28 @@ export function getUserManager(): UserManager {
 ## Implementation Timeline
 
 ### Week 1: Database Foundation
+
 - [ ] Setup Drizzle ORM and SQLite dependencies
 - [ ] Design and implement database schema
 - [ ] Create migration system
 - [ ] Basic database connection and operations
 
 ### Week 2: Manager Refactoring  
+
 - [ ] Implement DatabaseUserManager
 - [ ] Implement DatabaseKnowledgeManager
 - [ ] Implement DatabaseHistoryManager
 - [ ] Update DatabaseSessionManager
 
 ### Week 3: Integration & Testing
+
 - [ ] Update API endpoints to use database managers
 - [ ] Comprehensive testing suite
 - [ ] Performance testing and optimization
 - [ ] Edge Runtime compatibility validation
 
 ### Week 4: Migration & Deployment
+
 - [ ] Migration strategy implementation
 - [ ] Production deployment preparation
 - [ ] Documentation and monitoring
@@ -256,18 +275,21 @@ export function getUserManager(): UserManager {
 ## Success Criteria
 
 ### Technical Metrics
+
 - **100% API Success Rate**: All endpoints work reliably
 - **Data Persistence**: User registration → profile retrieval works
 - **Performance**: <100ms database query response times
 - **Edge Runtime Compatibility**: Works in Vercel Edge Runtime
 
 ### Feature Parity Metrics
+
 - **Complete CRUD**: All user, knowledge, history, session operations
 - **Search Functionality**: Tag-based history search, knowledge filtering
 - **Export Features**: JSON, Markdown, CSV exports from database
 - **Resource Management**: Knowledge attachment to sessions
 
 ### User Experience
+
 - **Zero Data Loss**: Reliable data persistence between requests
 - **Fast Responses**: No noticeable performance degradation
 - **Consistent Behavior**: Same functionality as client-side stores
@@ -275,11 +297,13 @@ export function getUserManager(): UserManager {
 ## Risk Mitigation
 
 ### Technical Risks
+
 - **Edge Runtime Limitations**: Test SQLite compatibility early
 - **File System Access**: Ensure database file can be written in deployment
 - **Concurrent Access**: Implement proper database locking
 
 ### Migration Risks
+
 - **Data Loss**: Thorough testing of migration scripts
 - **Downtime**: Implement zero-downtime migration strategy
 - **Rollback Plan**: Ability to revert to in-memory storage if needed

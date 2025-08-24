@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { authenticateRequest } from "@/utils/api/auth";
 import { SessionManager } from "@/utils/api/session-manager";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {

@@ -1,15 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/utils/api/auth";
-import { KnowledgeManager } from "@/utils/api/knowledge-manager";
 import {
   type APIResponse,
   type ListKnowledgeResponse,
   UploadKnowledgeSchema,
 } from "@/utils/api/types";
 
-const knowledgeManager = KnowledgeManager.getInstance();
-
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 // GET /api/knowledge - List knowledge
 export async function GET(request: NextRequest): Promise<NextResponse> {

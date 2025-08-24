@@ -1,11 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/utils/api/auth";
-import { HistoryManager } from "@/utils/api/history-manager";
 import type { APIResponse } from "@/utils/api/types";
 
-const historyManager = HistoryManager.getInstance();
-
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 // GET /api/history/[id] - Get specific research
 export async function GET(

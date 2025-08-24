@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 export const preferredRegion = ["cle1", "iad1", "pdx1", "sfo1", "sin1", "syd1", "hnd1", "kix1"];
 
 const API_PROXY_BASE_URL = process.env["OPENAI_COMPATIBLE_API_BASE_URL"] || "";

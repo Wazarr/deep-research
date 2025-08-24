@@ -1,11 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/utils/api/auth";
+import { getUserManager } from "@/utils/api/storage-factory";
 import type { APIResponse } from "@/utils/api/types";
-import { UserManager } from "@/utils/api/user-manager";
 
-const userManager = UserManager.getInstance();
-
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 // GET /api/auth/me - Get user profile
 export async function GET(request: NextRequest): Promise<NextResponse> {
@@ -21,6 +19,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     console.log("🔍 DEBUG - Looking for user ID:", userId);
+
+    const userManager = getUserManager();
     console.log("🔍 DEBUG - Total users in storage:", await userManager.list());
 
     const user = await userManager.get(userId);

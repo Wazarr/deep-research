@@ -1,11 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/utils/api/auth";
-import { KnowledgeManager } from "@/utils/api/knowledge-manager";
 import type { APIResponse } from "@/utils/api/types";
 
-const knowledgeManager = KnowledgeManager.getInstance();
-
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 // GET /api/knowledge/[id] - Get knowledge details
 export async function GET(

@@ -6,7 +6,7 @@ import {
   withCORS,
   withRateLimit,
 } from "@/utils/api/middleware";
-import { SessionManager } from "@/utils/api/session-manager";
+import { getSessionManager } from "@/utils/api/storage-factory";
 import { CreateSessionSchema, type SessionListResponse } from "@/utils/api/types";
 import {
   createErrorResponse,
@@ -15,10 +15,8 @@ import {
   validateRequestBody,
 } from "@/utils/api/validation";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const sessionManager = SessionManager.getInstance();
 
 export async function OPTIONS() {
   return handleOptions();
@@ -32,6 +30,7 @@ export async function POST(request: NextRequest) {
         if (error) return error;
 
         try {
+          const sessionManager = getSessionManager();
           const session = await sessionManager.create(
             data.settings,
             data.expiresIn || 3600,
@@ -57,6 +56,7 @@ export async function GET(request: NextRequest) {
     await withAuth(request, async (req: AuthenticatedRequest) => {
       return withRateLimit(req, "sessions:get", async (authReq: AuthenticatedRequest) => {
         try {
+          const sessionManager = getSessionManager();
           const sessions = await sessionManager.list(authReq.auth.userId);
 
           const response: SessionListResponse = {

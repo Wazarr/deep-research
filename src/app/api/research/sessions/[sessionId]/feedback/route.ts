@@ -13,7 +13,6 @@ import {
   withCORS,
   withRateLimit,
 } from "@/utils/api/middleware";
-import { SessionManager } from "@/utils/api/session-manager";
 import { FeedbackRequestSchema } from "@/utils/api/types";
 import {
   createErrorResponse,
@@ -23,10 +22,8 @@ import {
 } from "@/utils/api/validation";
 import { multiApiKeyPolling } from "@/utils/model";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const sessionManager = SessionManager.getInstance();
 
 export async function OPTIONS() {
   return handleOptions();

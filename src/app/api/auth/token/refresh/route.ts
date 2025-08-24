@@ -1,11 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/utils/api/auth";
+import { getUserManager } from "@/utils/api/storage-factory";
 import type { APIResponse } from "@/utils/api/types";
-import { UserManager } from "@/utils/api/user-manager";
 
-const userManager = UserManager.getInstance();
-
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 // POST /api/auth/token/refresh - Refresh token
 export async function POST(request: NextRequest): Promise<NextResponse> {
@@ -20,6 +18,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json(response, { status: 401 });
     }
 
+    const userManager = getUserManager();
     const authResponse = await userManager.refreshToken(userId);
 
     if (!authResponse) {

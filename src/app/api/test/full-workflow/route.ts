@@ -11,7 +11,7 @@ import { authenticateRequest } from "@/utils/api/auth";
 import { SessionManager } from "@/utils/api/session-manager";
 import { multiApiKeyPolling } from "@/utils/model";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 interface ParisTestConfig {

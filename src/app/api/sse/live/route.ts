@@ -8,7 +8,7 @@ import {
   getSearchProviderBaseURL,
 } from "../../utils";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const preferredRegion = ["cle1", "iad1", "pdx1", "sfo1", "sin1", "syd1", "hnd1", "kix1"];
 

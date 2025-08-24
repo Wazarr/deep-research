@@ -1,11 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/utils/api/auth";
-import { SessionManager } from "@/utils/api/session-manager";
 import type { APIResponse } from "@/utils/api/types";
 
-const sessionManager = SessionManager.getInstance();
-
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 // GET /api/research/sessions/[sessionId]/export - Export complete session data
 export async function GET(

@@ -1,11 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/utils/api/auth";
+import { getUserManager } from "@/utils/api/storage-factory";
 import { type APIResponse, UpdateSettingsSchema } from "@/utils/api/types";
-import { UserManager } from "@/utils/api/user-manager";
 
-const userManager = UserManager.getInstance();
-
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 // GET /api/auth/settings - Get user settings
 export async function GET(request: NextRequest): Promise<NextResponse> {
@@ -20,6 +18,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json(response, { status: 401 });
     }
 
+    const userManager = getUserManager();
     const settings = await userManager.getUserSettings(userId);
 
     if (!settings) {
@@ -62,6 +61,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
     const body = await request.json();
     const validatedSettings = UpdateSettingsSchema.parse(body);
 
+    const userManager = getUserManager();
     const updatedUser = await userManager.updateSettings(userId, validatedSettings);
 
     if (!updatedUser) {

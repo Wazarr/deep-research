@@ -6,7 +6,6 @@ import {
   withCORS,
   withRateLimit,
 } from "@/utils/api/middleware";
-import { SessionManager } from "@/utils/api/session-manager";
 import { RefineRequestSchema } from "@/utils/api/types";
 import {
   createErrorResponse,
@@ -15,10 +14,8 @@ import {
   validateSessionId,
 } from "@/utils/api/validation";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const sessionManager = SessionManager.getInstance();
 
 export async function OPTIONS() {
   return handleOptions();

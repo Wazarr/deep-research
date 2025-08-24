@@ -10,7 +10,7 @@ import { authenticateRequest } from "@/utils/api/auth";
 import DeepResearch from "@/utils/deep-research";
 import { multiApiKeyPolling } from "@/utils/model";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 interface StreamConfig {

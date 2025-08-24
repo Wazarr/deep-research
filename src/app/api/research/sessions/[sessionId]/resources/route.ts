@@ -1,13 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/utils/api/auth";
-import { KnowledgeManager } from "@/utils/api/knowledge-manager";
-import { SessionManager } from "@/utils/api/session-manager";
 import { type APIResponse, AttachResourcesSchema } from "@/utils/api/types";
 
-const sessionManager = SessionManager.getInstance();
-const knowledgeManager = KnowledgeManager.getInstance();
-
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 // POST /api/research/sessions/[sessionId]/resources - Attach resources
 export async function POST(

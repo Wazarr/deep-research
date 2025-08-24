@@ -1,13 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/utils/api/auth";
-import { HistoryManager } from "@/utils/api/history-manager";
-import { SessionManager } from "@/utils/api/session-manager";
 import { type APIResponse, RestoreHistorySchema } from "@/utils/api/types";
 
-const historyManager = HistoryManager.getInstance();
-const sessionManager = SessionManager.getInstance();
-
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 // POST /api/history/[id]/restore - Create new session from history
 export async function POST(

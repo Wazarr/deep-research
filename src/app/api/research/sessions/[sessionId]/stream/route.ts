@@ -1,14 +1,11 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { authenticateRequest } from "@/utils/api/auth";
-import { SessionManager } from "@/utils/api/session-manager";
 import { addStream, removeStream } from "@/utils/api/stream-manager";
 import { validateSessionId } from "@/utils/api/validation";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const sessionManager = SessionManager.getInstance();
 
 export async function GET(
   request: NextRequest,

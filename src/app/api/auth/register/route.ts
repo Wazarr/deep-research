@@ -1,10 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { getUserManager } from "@/utils/api/storage-factory";
 import { type APIResponse, RegisterUserSchema } from "@/utils/api/types";
-import { UserManager } from "@/utils/api/user-manager";
 
-const userManager = UserManager.getInstance();
-
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 // POST /api/auth/register - Create account
 export async function POST(request: NextRequest): Promise<NextResponse> {
@@ -12,6 +10,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const body = await request.json();
     const validatedData = RegisterUserSchema.parse(body);
 
+    const userManager = getUserManager();
     const authResponse = await userManager.register(validatedData.email, validatedData.settings);
 
     console.log("🔍 DEBUG - User registered with ID:", authResponse.userId);

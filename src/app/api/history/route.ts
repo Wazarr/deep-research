@@ -1,13 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/utils/api/auth";
-import { HistoryManager } from "@/utils/api/history-manager";
-import { SessionManager } from "@/utils/api/session-manager";
 import { type APIResponse, type ListHistoryResponse, SaveHistorySchema } from "@/utils/api/types";
 
-const historyManager = HistoryManager.getInstance();
-const sessionManager = SessionManager.getInstance();
-
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 // GET /api/history - List research history
 export async function GET(request: NextRequest): Promise<NextResponse> {

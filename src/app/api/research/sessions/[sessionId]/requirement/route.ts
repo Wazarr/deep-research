@@ -1,11 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/utils/api/auth";
-import { SessionManager } from "@/utils/api/session-manager";
 import { type APIResponse, UpdateRequirementSchema } from "@/utils/api/types";
 
-const sessionManager = SessionManager.getInstance();
-
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 // PUT /api/research/sessions/[sessionId]/requirement - Set custom requirements
 export async function PUT(
