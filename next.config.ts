@@ -45,7 +45,9 @@ export default async function Config(phase: string) {
   };
 
   if (BUILD_MODE === "export") {
-    throw new Error("Static export is not supported with API routes. Use 'pnpm build:standalone' for Docker deployment instead.");
+    throw new Error(
+      "Static export is not supported with API routes. Use 'pnpm build:standalone' for Docker deployment instead."
+    );
   } else if (BUILD_MODE === "standalone") {
     nextConfig.output = "standalone";
   } else {
