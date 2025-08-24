@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/utils/api/auth";
+import { getHistoryManager } from "@/utils/api/storage-factory";
 import type { APIResponse } from "@/utils/api/types";
 
 export const runtime = "nodejs";
@@ -13,6 +14,7 @@ export async function GET(
     const { userId } = await authenticateRequest(request);
     const { id: historyId } = await params;
 
+    const historyManager = getHistoryManager();
     const historyItem = await historyManager.get(historyId);
 
     if (!historyItem) {
@@ -56,6 +58,7 @@ export async function DELETE(
     const { userId } = await authenticateRequest(request);
     const { id: historyId } = await params;
 
+    const historyManager = getHistoryManager();
     const historyItem = await historyManager.get(historyId);
 
     if (!historyItem) {
@@ -101,6 +104,7 @@ export async function PUT(
     const { userId } = await authenticateRequest(request);
     const { id: historyId } = await params;
 
+    const historyManager = getHistoryManager();
     const historyItem = await historyManager.get(historyId);
 
     if (!historyItem) {

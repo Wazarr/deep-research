@@ -143,21 +143,26 @@ export class DatabaseSessionManager {
     userId?: string
   ): Promise<Pick<ResearchSession, "id" | "createdAt" | "updatedAt" | "phase" | "topic">[]> {
     try {
-      let query = db
-        .select({
-          id: sessions.id,
-          createdAt: sessions.createdAt,
-          updatedAt: sessions.updatedAt,
-          phase: sessions.phase,
-          topic: sessions.topic,
-        })
-        .from(sessions);
-
-      if (userId) {
-        query = query.where(eq(sessions.userId, userId));
-      }
-
-      const result = await query;
+      const result = userId
+        ? await db
+            .select({
+              id: sessions.id,
+              createdAt: sessions.createdAt,
+              updatedAt: sessions.updatedAt,
+              phase: sessions.phase,
+              topic: sessions.topic,
+            })
+            .from(sessions)
+            .where(eq(sessions.userId, userId))
+        : await db
+            .select({
+              id: sessions.id,
+              createdAt: sessions.createdAt,
+              updatedAt: sessions.updatedAt,
+              phase: sessions.phase,
+              topic: sessions.topic,
+            })
+            .from(sessions);
 
       return result.map((session) => ({
         id: session.id,
@@ -182,6 +187,36 @@ export class DatabaseSessionManager {
     } catch (error) {
       console.error("Error during session cleanup:", error);
       return 0;
+    }
+  }
+
+  async validateOwnership(
+    sessionId: string,
+    userId: string | undefined = undefined
+  ): Promise<boolean> {
+    try {
+      const session = await this.get(sessionId);
+      if (!session) return false;
+      return session.userId === userId;
+    } catch (error) {
+      console.error("Error validating session ownership:", error);
+      return false;
+    }
+  }
+
+  async extendExpiration(
+    sessionId: string,
+    additionalSeconds = 3600
+  ): Promise<ResearchSession | null> {
+    try {
+      const session = await this.get(sessionId);
+      if (!session) return null;
+
+      const newExpiresAt = new Date(session.expiresAt.getTime() + additionalSeconds * 1000);
+      return await this.update(sessionId, { expiresAt: newExpiresAt });
+    } catch (error) {
+      console.error("Error extending session expiration:", error);
+      return null;
     }
   }
 

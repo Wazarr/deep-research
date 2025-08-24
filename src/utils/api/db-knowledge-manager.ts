@@ -69,13 +69,9 @@ export class DatabaseKnowledgeManager {
 
   async list(userId?: string): Promise<KnowledgeResponse[]> {
     try {
-      let query = db.select().from(knowledge);
-
-      if (userId) {
-        query = query.where(eq(knowledge.userId, userId));
-      }
-
-      const result = await query;
+      const result = userId
+        ? await db.select().from(knowledge).where(eq(knowledge.userId, userId))
+        : await db.select().from(knowledge);
       return result.map((k) => this.convertDbKnowledgeToResponse(k));
     } catch (error) {
       console.error("Error listing knowledge:", error);
@@ -128,12 +124,14 @@ export class DatabaseKnowledgeManager {
     userId?: string
   ): Promise<KnowledgeResponse[]> {
     try {
-      let whereCondition = eq(knowledge.type, type);
+      const whereConditions = [eq(knowledge.type, type)];
 
       if (userId) {
-        whereCondition = and(eq(knowledge.type, type), eq(knowledge.userId, userId));
+        whereConditions.push(eq(knowledge.userId, userId));
       }
 
+      const whereCondition =
+        whereConditions.length === 1 ? whereConditions[0] : and(...whereConditions)!;
       const result = await db.select().from(knowledge).where(whereCondition);
       return result.map((k) => this.convertDbKnowledgeToResponse(k));
     } catch (error) {
@@ -159,6 +157,59 @@ export class DatabaseKnowledgeManager {
     }
   }
 
+  async validateOwnership(
+    knowledgeId: string,
+    userId: string | undefined = undefined
+  ): Promise<boolean> {
+    try {
+      const knowledge = await this.get(knowledgeId);
+      if (!knowledge) return false;
+      return knowledge.userId === userId;
+    } catch (error) {
+      console.error("Error validating knowledge ownership:", error);
+      return false;
+    }
+  }
+
+  async processFile(file: File, userId?: string): Promise<KnowledgeResponse> {
+    // For now, just store the file metadata
+    // In a real implementation, you'd process the file content
+    const content = await file.text();
+
+    return await this.create({
+      type: "file",
+      title: file.name,
+      content,
+      size: file.size,
+      userId,
+      fileMeta: {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+      },
+    });
+  }
+
+  async processUrl(url: string, title?: string, userId?: string): Promise<KnowledgeResponse> {
+    // In a real implementation, you'd crawl the URL content
+    return await this.create({
+      type: "url",
+      title: title || url,
+      url,
+      userId,
+    });
+  }
+
+  async processText(text: string, title: string, userId?: string): Promise<KnowledgeResponse> {
+    return await this.create({
+      type: "knowledge",
+      title,
+      content: text,
+      userId,
+    });
+  }
+
   // Helper method to convert database knowledge to KnowledgeResponse
   private convertDbKnowledgeToResponse(dbKnowledge: Knowledge | NewKnowledge): KnowledgeResponse {
     return {
@@ -167,8 +218,8 @@ export class DatabaseKnowledgeManager {
       type: dbKnowledge.type as "file" | "url" | "knowledge",
       size: dbKnowledge.size || 0,
       status: dbKnowledge.status as "processing" | "completed" | "failed",
-      createdAt: dbKnowledge.createdAt,
-      updatedAt: dbKnowledge.updatedAt,
+      createdAt: dbKnowledge.createdAt || new Date().toISOString(),
+      updatedAt: dbKnowledge.updatedAt || new Date().toISOString(),
       userId: dbKnowledge.userId || undefined,
       url: dbKnowledge.url || undefined,
       fileMeta: dbKnowledge.fileMeta ? JSON.parse(dbKnowledge.fileMeta as string) : undefined,

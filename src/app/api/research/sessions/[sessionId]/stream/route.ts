@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { authenticateRequest } from "@/utils/api/auth";
+import { getSessionManager } from "@/utils/api/storage-factory";
 import { addStream, removeStream } from "@/utils/api/stream-manager";
 import { validateSessionId } from "@/utils/api/validation";
 
@@ -23,6 +24,7 @@ export async function GET(
   }
 
   try {
+    const sessionManager = getSessionManager();
     const session = await sessionManager.get(sessionId);
     if (!session) {
       return new NextResponse("Session not found", { status: 404 });

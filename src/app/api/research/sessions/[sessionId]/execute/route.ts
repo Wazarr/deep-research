@@ -13,6 +13,7 @@ import {
   withCORS,
   withRateLimit,
 } from "@/utils/api/middleware";
+import { getSessionManager } from "@/utils/api/storage-factory";
 import {
   createErrorResponse,
   createSuccessResponse,
@@ -41,6 +42,7 @@ export async function POST(
         }
 
         try {
+          const sessionManager = getSessionManager();
           const session = await sessionManager.get(sessionId);
           if (!session) {
             return createErrorResponse("Session not found", 404);
@@ -104,6 +106,7 @@ export async function POST(
           });
         } catch (err) {
           console.error("Research execution error:", err);
+          const sessionManager = getSessionManager();
           await sessionManager.update(sessionId, {
             phase: "error",
             error: err instanceof Error ? err.message : "Unknown error",

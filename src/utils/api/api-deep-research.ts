@@ -1,10 +1,11 @@
 import DeepResearch, { type DeepResearchOptions } from "@/utils/deep-research";
+import type { DatabaseSessionManager } from "./db-session-manager";
 import type { SessionManager } from "./session-manager";
 
 export class APIDeepResearch extends DeepResearch {
   constructor(
     options: DeepResearchOptions,
-    private sessionManager: SessionManager,
+    private sessionManager: SessionManager | DatabaseSessionManager,
     private sessionId: string
   ) {
     super(options);

@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/utils/api/auth";
+import { getHistoryManager, getSessionManager } from "@/utils/api/storage-factory";
 import { type APIResponse, RestoreHistorySchema } from "@/utils/api/types";
 
 export const runtime = "nodejs";
@@ -13,6 +14,7 @@ export async function POST(
     const { userId } = await authenticateRequest(request);
     const { id: historyId } = await params;
 
+    const historyManager = getHistoryManager();
     const historyItem = await historyManager.get(historyId);
 
     if (!historyItem) {
@@ -48,6 +50,7 @@ export async function POST(
 
     // Create the new session in the session manager
     // We need to create a new session properly through the manager
+    const sessionManager = getSessionManager();
     const newSession = await sessionManager.create(
       restoredSessionData.settings,
       expiresIn || 3600,

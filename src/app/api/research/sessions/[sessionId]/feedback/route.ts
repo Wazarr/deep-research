@@ -13,6 +13,7 @@ import {
   withCORS,
   withRateLimit,
 } from "@/utils/api/middleware";
+import { getSessionManager } from "@/utils/api/storage-factory";
 import { FeedbackRequestSchema } from "@/utils/api/types";
 import {
   createErrorResponse,
@@ -46,6 +47,7 @@ export async function POST(
         if (error) return error;
 
         try {
+          const sessionManager = getSessionManager();
           const session = await sessionManager.get(sessionId);
           if (!session) {
             return createErrorResponse("Session not found", 404);
@@ -102,6 +104,7 @@ export async function POST(
           });
         } catch (err) {
           console.error("Feedback processing error:", err);
+          const sessionManager = getSessionManager();
           await sessionManager.update(sessionId, {
             phase: "error",
             error: err instanceof Error ? err.message : "Unknown error",

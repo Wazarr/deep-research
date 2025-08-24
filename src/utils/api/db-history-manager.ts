@@ -138,12 +138,14 @@ export class DatabaseHistoryManager {
 
   async getBySessionId(sessionId: string, userId?: string): Promise<HistoryItem[]> {
     try {
-      let whereCondition = eq(history.sessionId, sessionId);
+      const whereConditions = [eq(history.sessionId, sessionId)];
 
       if (userId) {
-        whereCondition = and(eq(history.sessionId, sessionId), eq(history.userId, userId));
+        whereConditions.push(eq(history.userId, userId));
       }
 
+      const whereCondition =
+        whereConditions.length === 1 ? whereConditions[0] : and(...whereConditions)!;
       const result = await db.select().from(history).where(whereCondition);
       return result.map((h) => this.convertDbHistoryToHistoryItem(h));
     } catch (error) {
@@ -168,6 +170,76 @@ export class DatabaseHistoryManager {
     }
   }
 
+  async validateOwnership(
+    historyId: string,
+    userId: string | undefined = undefined
+  ): Promise<boolean> {
+    try {
+      const item = await this.get(historyId);
+      if (!item) return false;
+      return item.userId === userId;
+    } catch (error) {
+      console.error("Error validating history ownership:", error);
+      return false;
+    }
+  }
+
+  async restore(
+    historyId: string,
+    expiresIn = 3600,
+    userId?: string
+  ): Promise<ResearchSession | null> {
+    try {
+      const item = await this.get(historyId);
+      if (!item) return null;
+
+      // Check ownership if user is authenticated
+      if (userId && !(await this.validateOwnership(historyId, userId))) {
+        return null;
+      }
+
+      // Create a new session based on the historical data
+      const now = new Date();
+      const restoredSession: ResearchSession = {
+        ...item.sessionData,
+        id: nanoid(), // Generate new session ID
+        userId,
+        createdAt: now,
+        updatedAt: now,
+        expiresAt: new Date(now.getTime() + expiresIn * 1000),
+        phase: "topic", // Reset to beginning of flow
+        error: undefined, // Clear any previous errors
+      };
+
+      return restoredSession;
+    } catch (error) {
+      console.error("Error restoring from history:", error);
+      return null;
+    }
+  }
+
+  async updateTags(historyId: string, tags: string[]): Promise<HistoryItem | null> {
+    try {
+      const item = await this.get(historyId);
+      if (!item) return null;
+
+      const [updatedHistory] = await db
+        .update(history)
+        .set({
+          tags: JSON.stringify(tags),
+        })
+        .where(eq(history.id, historyId))
+        .returning();
+
+      if (!updatedHistory) return null;
+
+      return this.convertDbHistoryToHistoryItem(updatedHistory);
+    } catch (error) {
+      console.error("Error updating history tags:", error);
+      return null;
+    }
+  }
+
   // Helper method to convert database history to HistoryItem
   private convertDbHistoryToHistoryItem(dbHistory: History | NewHistory): HistoryItem {
     return {
@@ -177,7 +249,7 @@ export class DatabaseHistoryManager {
       title: dbHistory.title,
       tags: JSON.parse((dbHistory.tags as string) || "[]"),
       sessionData: JSON.parse((dbHistory.sessionData as string) || "{}"),
-      createdAt: dbHistory.createdAt,
+      createdAt: dbHistory.createdAt || new Date().toISOString(),
     };
   }
 }

@@ -6,6 +6,7 @@ import {
   withCORS,
   withRateLimit,
 } from "@/utils/api/middleware";
+import { getSessionManager } from "@/utils/api/storage-factory";
 import {
   createErrorResponse,
   createSuccessResponse,
@@ -34,6 +35,7 @@ export async function GET(
         }
 
         try {
+          const sessionManager = getSessionManager();
           const session = await sessionManager.get(sessionId);
           if (!session) {
             return createErrorResponse("Session not found", 404);
@@ -68,6 +70,7 @@ export async function DELETE(
         }
 
         try {
+          const sessionManager = getSessionManager();
           const session = await sessionManager.get(sessionId);
           if (!session) {
             return createErrorResponse("Session not found", 404);

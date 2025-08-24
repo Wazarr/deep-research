@@ -6,6 +6,7 @@ import {
   withCORS,
   withRateLimit,
 } from "@/utils/api/middleware";
+import { getSessionManager } from "@/utils/api/storage-factory";
 import { RefineRequestSchema } from "@/utils/api/types";
 import {
   createErrorResponse,
@@ -38,6 +39,7 @@ export async function POST(
         if (error) return error;
 
         try {
+          const sessionManager = getSessionManager();
           const session = await sessionManager.get(sessionId);
           if (!session) {
             return createErrorResponse("Session not found", 404);

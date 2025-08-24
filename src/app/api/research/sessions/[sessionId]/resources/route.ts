@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { authenticateRequest } from "@/utils/api/auth";
+import { getKnowledgeManager, getSessionManager } from "@/utils/api/storage-factory";
 import { type APIResponse, AttachResourcesSchema } from "@/utils/api/types";
 
 export const runtime = "nodejs";
@@ -13,6 +14,7 @@ export async function POST(
     const { userId } = await authenticateRequest(request);
     const { sessionId } = await params;
 
+    const sessionManager = getSessionManager();
     const session = await sessionManager.get(sessionId);
     if (!session) {
       const response: APIResponse = {
@@ -35,6 +37,7 @@ export async function POST(
     const { knowledgeIds } = AttachResourcesSchema.parse(body);
 
     // Validate that all knowledge items exist and are accessible
+    const knowledgeManager = getKnowledgeManager();
     const resources: Resource[] = [];
     for (const knowledgeId of knowledgeIds) {
       const knowledge = await knowledgeManager.get(knowledgeId);
@@ -103,6 +106,7 @@ export async function GET(
     const { userId } = await authenticateRequest(request);
     const { sessionId } = await params;
 
+    const sessionManager = getSessionManager();
     const session = await sessionManager.get(sessionId);
     if (!session) {
       const response: APIResponse = {

@@ -58,6 +58,7 @@ export async function PUT(
     const { userId } = await authenticateRequest(request);
     const { id: knowledgeId } = await params;
 
+    const knowledgeManager = getKnowledgeManager();
     const knowledge = await knowledgeManager.get(knowledgeId);
 
     if (!knowledge) {
@@ -104,6 +105,7 @@ export async function DELETE(
     const { userId } = await authenticateRequest(request);
     const { id: knowledgeId } = await params;
 
+    const knowledgeManager = getKnowledgeManager();
     const knowledge = await knowledgeManager.get(knowledgeId);
 
     if (!knowledge) {
