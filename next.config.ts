@@ -45,25 +45,7 @@ export default async function Config(phase: string) {
   };
 
   if (BUILD_MODE === "export") {
-    nextConfig.output = "export";
-    // Only used for static deployment, the default deployment directory is the root directory
-    nextConfig.basePath = "";
-    nextConfig.trailingSlash = true;
-    nextConfig.images = {
-      unoptimized: true,
-    };
-    // Statically exporting a Next.js application via `next export` disables API routes and middleware.
-    nextConfig.webpack = (config) => {
-      config.module.rules.push({
-        test: /\/app\/api\//,
-        loader: "ignore-loader",
-      });
-      config.module.rules.push({
-        test: /\/middleware\./,
-        loader: "ignore-loader",
-      });
-      return config;
-    };
+    throw new Error("Static export is not supported with API routes. Use 'pnpm build:standalone' for Docker deployment instead.");
   } else if (BUILD_MODE === "standalone") {
     nextConfig.output = "standalone";
   } else {
