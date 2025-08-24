@@ -44,6 +44,7 @@ interface TaskActions {
   reset: () => void;
   backup: () => TaskStore;
   restore: (taskStore: TaskStore) => void;
+  syncWithSession: (session: any) => void;
 }
 
 const defaultValues: TaskStore = {
@@ -115,6 +116,20 @@ export const useTaskStore = create(
         } as TaskStore;
       },
       restore: (taskStore) => set(() => ({ ...taskStore })),
+      syncWithSession: (session) => {
+        // Sync the store with session data from API
+        const updates: Partial<TaskStore> = {};
+        if (session.id) updates.id = session.id;
+        if (session.topic) updates.question = session.topic;
+        if (session.questions) updates.questions = session.questions;
+        if (session.feedback) updates.feedback = session.feedback;
+        if (session.reportPlan) updates.reportPlan = session.reportPlan;
+        if (session.finalReport) updates.finalReport = session.finalReport;
+        if (session.tasks) updates.tasks = session.tasks;
+        if (session.resources) updates.resources = session.resources;
+        if (session.requirement) updates.requirement = session.requirement;
+        set((state) => ({ ...state, ...updates }));
+      },
     }),
     { name: "research" }
   )

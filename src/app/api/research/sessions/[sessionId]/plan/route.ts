@@ -18,7 +18,6 @@ import { PlanRequestSchema } from "@/utils/api/types";
 import {
   createErrorResponse,
   createSuccessResponse,
-  validateRequestBody,
   validateSessionId,
 } from "@/utils/api/validation";
 import { multiApiKeyPolling } from "@/utils/model";
@@ -43,8 +42,22 @@ export async function POST(
           return createErrorResponse("Invalid session ID", 400);
         }
 
-        const { data, error } = await validateRequestBody(authReq, PlanRequestSchema);
-        if (error) return error;
+        // Plan requests can be empty - we'll get data from the session
+        const requestBody = await authReq.text();
+        let data: any = {};
+
+        if (requestBody) {
+          try {
+            const parsedBody = JSON.parse(requestBody);
+            const validation = PlanRequestSchema.safeParse(parsedBody);
+            if (!validation.success) {
+              return createErrorResponse("Invalid request body", 400);
+            }
+            data = validation.data;
+          } catch {
+            return createErrorResponse("Invalid JSON in request body", 400);
+          }
+        }
 
         try {
           const sessionManager = getSessionManager();
@@ -87,9 +100,15 @@ export async function POST(
             sessionId
           );
 
-          const finalTopic = data.feedback
-            ? `${data.topic}\n\nRefinements: ${data.feedback}`
-            : data.topic;
+          // Use session data if not provided in request
+          const topic = data.topic || session.topic;
+          const feedback = data.feedback || session.feedback;
+
+          if (!topic) {
+            return createErrorResponse("No topic available for planning", 400);
+          }
+
+          const finalTopic = feedback ? `${topic}\n\nRefinements: ${feedback}` : topic;
 
           const reportPlan = await deepResearch.writeReportPlan(finalTopic);
           const tasks = await deepResearch.generateSERPQuery(reportPlan);

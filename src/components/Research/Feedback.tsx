@@ -10,7 +10,7 @@ import { Button } from "@/components/Internal/Button";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import useAccurateTimer from "@/hooks/useAccurateTimer";
-import useDeepResearch from "@/hooks/useDeepResearch";
+import useResearchAPI from "@/hooks/useResearchAPI";
 import { useTaskStore } from "@/store/task";
 
 const MagicDown = dynamic(() => import("@/components/MagicDown"));
@@ -22,7 +22,8 @@ const formSchema = z.object({
 function Feedback() {
   const { t } = useTranslation();
   const taskStore = useTaskStore();
-  const { status, deepResearch, writeReportPlan } = useDeepResearch();
+  const { status, executeResearch, writeReportPlan, submitFeedback, streaming, session } =
+    useResearchAPI();
   const { formattedTime, start: accurateTimerStart, stop: accurateTimerStop } = useAccurateTimer();
   const [isThinking, setIsThinking] = useState<boolean>(false);
   const [isResearch, setIsResaerch] = useState<boolean>(false);
@@ -38,7 +39,7 @@ function Feedback() {
     try {
       accurateTimerStart();
       setIsResaerch(true);
-      await deepResearch();
+      await executeResearch();
     } finally {
       setIsResaerch(false);
       accurateTimerStop();
@@ -46,17 +47,18 @@ function Feedback() {
   }
 
   async function handleSubmit(values: z.infer<typeof formSchema>) {
-    const { question, questions, setFeedback } = useTaskStore.getState();
+    const { setFeedback } = useTaskStore.getState();
     setFeedback(values.feedback);
-    const prompt = [
-      `Initial Query: ${question}`,
-      `Follow-up Questions: ${questions}`,
-      `Follow-up Feedback: ${values.feedback}`,
-    ].join("\n\n");
-    taskStore.setQuery(prompt);
+
     try {
       accurateTimerStart();
       setIsThinking(true);
+
+      if (values.feedback.trim()) {
+        // Submit feedback first, then create plan
+        await submitFeedback(values.feedback);
+      }
+
       await writeReportPlan();
       setIsThinking(false);
     } finally {
@@ -67,6 +69,18 @@ function Feedback() {
   useEffect(() => {
     form.setValue("feedback", taskStore.feedback);
   }, [taskStore.feedback, form]);
+
+  useEffect(() => {
+    // Sync session data with local task store when session changes
+    if (session) {
+      if (session.reportPlan && session.reportPlan !== taskStore.reportPlan) {
+        taskStore.updateReportPlan(session.reportPlan);
+      }
+      if (session.tasks && session.tasks.length > 0) {
+        taskStore.update(session.tasks);
+      }
+    }
+  }, [session, taskStore]);
 
   return (
     <section className="p-4 border rounded-md mt-4 print:hidden">
@@ -97,15 +111,15 @@ function Feedback() {
                       <Textarea
                         rows={3}
                         placeholder={t("research.feedback.feedbackPlaceholder")}
-                        disabled={isThinking}
+                        disabled={isThinking || streaming}
                         {...field}
                       />
                     </FormControl>
                   </FormItem>
                 )}
               />
-              <Button className="mt-4 w-full" type="submit" disabled={isThinking}>
-                {isThinking ? (
+              <Button className="mt-4 w-full" type="submit" disabled={isThinking || streaming}>
+                {isThinking || streaming ? (
                   <>
                     <LoaderCircle className="animate-spin" />
                     <span>{status}</span>
@@ -133,9 +147,9 @@ function Feedback() {
             className="w-full mt-4"
             variant="default"
             onClick={() => startDeepResearch()}
-            disabled={isResearch}
+            disabled={isResearch || streaming}
           >
-            {isResearch ? (
+            {isResearch || streaming ? (
               <>
                 <LoaderCircle className="animate-spin" />
                 <span>{status}</span>

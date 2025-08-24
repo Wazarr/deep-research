@@ -66,6 +66,8 @@ export async function POST(
           const aiApiKey = multiApiKeyPolling(getAIProviderApiKey(settings.provider));
           const searchApiKey = multiApiKeyPolling(getSearchProviderApiKey(settings.searchProvider));
 
+          const { broadcast } = await import("@/utils/api/stream-manager");
+
           const deepResearch = new APIDeepResearch(
             {
               ...(settings.language && { language: settings.language }),
@@ -81,6 +83,9 @@ export async function POST(
                 ...(searchApiKey && { apiKey: searchApiKey }),
                 provider: settings.searchProvider,
                 ...(settings.maxResults && { maxResult: settings.maxResults }),
+              },
+              onMessage: (event: string, data: any) => {
+                broadcast(sessionId, event, data);
               },
             },
             sessionManager,

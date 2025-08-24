@@ -26,8 +26,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import useAccurateTimer from "@/hooks/useAccurateTimer";
-import useDeepResearch from "@/hooks/useDeepResearch";
 import useKnowledge from "@/hooks/useKnowledge";
+import useResearchAPI from "@/hooks/useResearchAPI";
 import { useKnowledgeStore } from "@/store/knowledge";
 import { useTaskStore } from "@/store/task";
 import { downloadFile } from "@/utils/file";
@@ -60,7 +60,7 @@ function TaskState({ state }: { state: SearchTask["state"] }) {
 function SearchResult() {
   const { t } = useTranslation();
   const taskStore = useTaskStore();
-  const { status, runSearchTask, reviewSearchResult } = useDeepResearch();
+  const { status, executeResearch, refineResearch, streaming } = useResearchAPI();
   const { generateId } = useKnowledge();
   const { formattedTime, start: accurateTimerStart, stop: accurateTimerStop } = useAccurateTimer();
   const [isThinking, setIsThinking] = useState<boolean>(false);
@@ -103,12 +103,16 @@ function SearchResult() {
       accurateTimerStart();
       setIsThinking(true);
       if (unfinishedTasks.length > 0) {
-        await runSearchTask(unfinishedTasks);
+        // Continue with research execution
+        await executeResearch();
       } else {
-        if (values.suggestion) setSuggestion(values.suggestion);
-        await reviewSearchResult();
-        // Clear previous research suggestions
-        setSuggestion("");
+        // Refine research with user suggestion
+        if (values.suggestion) {
+          setSuggestion(values.suggestion);
+          await refineResearch(values.suggestion);
+          // Clear previous research suggestions
+          setSuggestion("");
+        }
       }
     } finally {
       setIsThinking(false);
@@ -141,7 +145,7 @@ function SearchResult() {
       state: "unprocessed",
     };
     updateTask(query, newTask);
-    await runSearchTask([newTask]);
+    await executeResearch();
   }
 
   function handleRemove(query: string) {
@@ -286,15 +290,20 @@ function SearchResult() {
                       <Textarea
                         rows={3}
                         placeholder={t("research.searchResult.suggestionPlaceholder")}
-                        disabled={isThinking}
+                        disabled={isThinking || streaming}
                         {...field}
                       />
                     </FormControl>
                   </FormItem>
                 )}
               />
-              <Button className="w-full mt-4" type="submit" variant="default" disabled={isThinking}>
-                {isThinking ? (
+              <Button
+                className="w-full mt-4"
+                type="submit"
+                variant="default"
+                disabled={isThinking || streaming}
+              >
+                {isThinking || streaming ? (
                   <>
                     <LoaderCircle className="animate-spin" />
                     <span>{status}</span>

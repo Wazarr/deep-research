@@ -8,7 +8,7 @@ import {
 } from "@/app/api/utils";
 import { APIDeepResearch } from "@/utils/api/api-deep-research";
 import { authenticateRequest } from "@/utils/api/auth";
-import { SessionManager } from "@/utils/api/session-manager";
+import { getSessionManager } from "@/utils/api/storage-factory";
 import { multiApiKeyPolling } from "@/utils/model";
 
 export const runtime = "nodejs";
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     } = config;
 
     // Create session manager instance for this test
-    const sessionManager = new SessionManager();
+    const sessionManager = getSessionManager();
 
     // Create a session with configurable AI models
     const session = await sessionManager.create(

@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { authenticateRequest } from "@/utils/api/auth";
-import { SessionManager } from "@/utils/api/session-manager";
+import { getSessionManager } from "@/utils/api/storage-factory";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create session manager instance for this test
-    const sessionManager = new SessionManager();
+    const sessionManager = getSessionManager();
 
     const testResults = [];
 

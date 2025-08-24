@@ -1,6 +1,6 @@
 import { eq, lt } from "drizzle-orm";
 import { nanoid } from "nanoid";
-import { db, type NewSession, type Session, sessions } from "../../db";
+import { db, type NewSession, type NewUser, type Session, sessions, users } from "../../db";
 import type { ResearchSession, ResearchSettings } from "./types";
 
 export class DatabaseSessionManager {
@@ -19,6 +19,11 @@ export class DatabaseSessionManager {
     userId?: string
   ): Promise<ResearchSession> {
     const now = new Date();
+
+    // Ensure user exists if userId is provided
+    if (userId) {
+      await this.ensureUserExists(userId);
+    }
 
     const sessionData: NewSession = {
       id: nanoid(),
@@ -217,6 +222,45 @@ export class DatabaseSessionManager {
     } catch (error) {
       console.error("Error extending session expiration:", error);
       return null;
+    }
+  }
+
+  // Helper method to ensure user exists in database
+  private async ensureUserExists(userId: string): Promise<void> {
+    try {
+      // Check if user already exists
+      const existingUser = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+
+      if (existingUser.length === 0) {
+        // Create user with default settings
+        const now = new Date().toISOString();
+        const newUser: NewUser = {
+          id: userId,
+          email: undefined,
+          settings: JSON.stringify({
+            provider: "google",
+            thinkingModel: "gemini-2.0-flash-thinking-exp",
+            taskModel: "gemini-2.0-flash",
+            searchProvider: "model",
+            theme: "light",
+            language: "en",
+            enableSearch: true,
+            searchMaxResult: 10,
+            parallelSearch: 3,
+            enableCitationImage: true,
+            enableReferences: true,
+            maxSessionDuration: 3600,
+            defaultExpirationTime: 3600,
+          }),
+          createdAt: now,
+          updatedAt: now,
+        };
+
+        await db.insert(users).values(newUser);
+      }
+    } catch (error) {
+      console.error("Error ensuring user exists:", error);
+      throw error;
     }
   }
 

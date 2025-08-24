@@ -136,7 +136,7 @@ export class APIDeepResearch extends DeepResearch {
         topic,
       });
 
-      this.onMessage("progress", { step: "ask-questions", status: "start" });
+      this.onMessage("progress", { step: "questions", status: "start" });
 
       const thinkingModel = await this.getThinkingModel();
       const { generateText } = await import("ai");
@@ -156,9 +156,12 @@ export class APIDeepResearch extends DeepResearch {
       });
 
       this.onMessage("progress", {
-        step: "ask-questions",
+        step: "questions",
         status: "end",
-        data: questions,
+      });
+
+      this.onMessage("message", {
+        questions,
       });
 
       return questions;

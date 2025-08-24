@@ -39,6 +39,11 @@ export async function withRateLimit(
   handler: (req: AuthenticatedRequest) => Promise<NextResponse>
 ): Promise<NextResponse> {
   try {
+    // Skip rate limiting in development mode
+    if (process.env.NODE_ENV === "development") {
+      return await handler(request);
+    }
+
     if (!request.auth.userId) {
       return createErrorResponse("User ID required for rate limiting", 400);
     }

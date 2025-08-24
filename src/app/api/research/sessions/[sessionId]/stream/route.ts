@@ -18,7 +18,21 @@ export async function GET(
     return new NextResponse("Invalid session ID", { status: 400 });
   }
 
-  const auth = await authenticateRequest(request);
+  // Try to authenticate via query parameter first (for EventSource), then fallback to headers
+  const apiKey = request.nextUrl.searchParams.get("apiKey");
+  let auth;
+
+  if (apiKey) {
+    // Authenticate using API key from query parameter
+    const tempRequest = Object.create(request);
+    tempRequest.headers = new Headers(request.headers);
+    tempRequest.headers.set("Authorization", `Bearer ${apiKey}`);
+    auth = await authenticateRequest(tempRequest);
+  } else {
+    // Fallback to header-based authentication
+    auth = await authenticateRequest(request);
+  }
+
   if (!auth.isAuthenticated) {
     return new NextResponse("Authentication required", { status: 401 });
   }

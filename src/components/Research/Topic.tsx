@@ -18,8 +18,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/
 import { Textarea } from "@/components/ui/textarea";
 import useAccurateTimer from "@/hooks/useAccurateTimer";
 import useAiProvider from "@/hooks/useAiProvider";
-import useDeepResearch from "@/hooks/useDeepResearch";
 import useKnowledge from "@/hooks/useKnowledge";
+import useResearchAPI from "@/hooks/useResearchAPI";
 import { useGlobalStore } from "@/store/global";
 import { useHistoryStore } from "@/store/history";
 import { useSettingStore } from "@/store/setting";
@@ -33,7 +33,7 @@ function Topic() {
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const taskStore = useTaskStore();
-  const { askQuestions } = useDeepResearch();
+  const { startFullWorkflow, streaming, status, getSession } = useResearchAPI();
   const { hasApiKey } = useAiProvider();
   const { getKnowledgeFromFile } = useKnowledge();
   const { formattedTime, start: accurateTimerStart, stop: accurateTimerStop } = useAccurateTimer();
@@ -60,7 +60,7 @@ function Topic() {
 
   async function handleSubmit(values: z.infer<typeof formSchema>) {
     if (handleCheck()) {
-      const { id, setQuestion } = useTaskStore.getState();
+      const { id } = useTaskStore.getState();
       try {
         setIsThinking(true);
         accurateTimerStart();
@@ -68,8 +68,7 @@ function Topic() {
           createNewResearch();
           form.setValue("topic", values.topic);
         }
-        setQuestion(values.topic);
-        await askQuestions();
+        await startFullWorkflow(values.topic, taskStore.resources);
       } finally {
         setIsThinking(false);
         accurateTimerStop();
@@ -105,6 +104,23 @@ function Topic() {
   useEffect(() => {
     form.setValue("topic", taskStore.question);
   }, [taskStore.question, form]);
+
+  useEffect(() => {
+    // Poll for session updates when we have a session ID
+    if (taskStore.id && !streaming) {
+      const pollSession = async () => {
+        try {
+          await getSession(taskStore.id);
+        } catch (error) {
+          console.warn("Failed to poll session:", error);
+        }
+      };
+
+      pollSession();
+      const interval = setInterval(pollSession, 2000);
+      return () => clearInterval(interval);
+    }
+  }, [taskStore.id, streaming, getSession]);
 
   return (
     <section className="p-4 border rounded-md mt-4 print:hidden">
@@ -181,11 +197,11 @@ function Topic() {
               </div>
             </FormControl>
           </FormItem>
-          <Button className="w-full mt-4" disabled={isThinking} type="submit">
-            {isThinking ? (
+          <Button className="w-full mt-4" disabled={isThinking || streaming} type="submit">
+            {isThinking || streaming ? (
               <>
                 <LoaderCircle className="animate-spin" />
-                <span>{t("research.common.thinkingQuestion")}</span>
+                <span>{status || t("research.common.thinkingQuestion")}</span>
                 <small className="font-mono">{formattedTime}</small>
               </>
             ) : taskStore.questions === "" ? (
